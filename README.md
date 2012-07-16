@@ -34,7 +34,8 @@ NOTES
 
 `Wallpapers:`
     
-    Due to not owning the licesnces for any of the wallpapers displayed in screenshots they will be removed from the File tree so you will be required to make some changes to the ./themes/default/theme.lua
+    Due to not owning the licesnces for any of the wallpapers displayed in screenshots they will be 
+    removed from the File tree so you will be required to make some changes to the ./themes/default/theme.lua
 
 `Scripts:`
 
