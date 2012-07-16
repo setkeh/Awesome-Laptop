@@ -7,7 +7,8 @@ http://awesome.naquadah.org/wiki/Main_Page
 https://github.com/setkeh/Awesome
 
 Depends on: git [luasocket][1] - [luainotify][2]
-Optional:  None
+
+Optional:  [Widget-Notify][4]
 
 INSTALL Awesome Window Manager
 ------------------------------
@@ -95,6 +96,6 @@ SHARE AND ENJOY!
 [1]: http://w3.impa.br/~diego/software/luasocket
 [2]: http://www3.telus.net/taj_khattra/luainotify.html
 [3]: https://wiki.archlinux.org/index.php/Mpd
-[4]: http://placeholder.place.is.held
+[4]: https://github.com/setkeh/Awesome-Widget-Notify 
 [5]: http://www.linuxdistrocommunity.com
 [6]: https://github.com/setkeh/Awesome/issues
