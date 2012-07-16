@@ -38,11 +38,16 @@ NOTES
 
 `Scripts:`
 
-    Please Keep in mind if you download these configs and scripts they are currently in beta what works for me may not work for you nessisarily you are ofcourse welcome to open up issues and please makesure you give detailed log output and explinations for the issues. Currently Most of the Scripts are designed for working with Archlinux (i.e Pacman and Aur Updates) but im working on making it more distro indipendant. Enjoy :) 
+    Please Keep in mind if you download these configs and scripts they are currently in beta what works for 
+    me may not work for you nessisarily you are ofcourse welcome to open up issues and please makesure you 
+    give detailed log output and explinations for the issues. Currently Most of the Scripts are designed 
+    for working with Archlinux (i.e Pacman and Aur Updates) but im working on making it more distro indipendant. 
+    Enjoy :) 
 
 `Screenshots`
 
-    If you would like to share your screenshot of these configs please contact setkeh via email or join #linuxdistrocommunity on freenode :)
+    If you would like to share your screenshot of these configs please contact setkeh via email or 
+    join #linuxdistrocommunity on freenode :)
 
 SUPPORT
 -------
