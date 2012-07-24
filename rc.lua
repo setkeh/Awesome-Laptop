@@ -80,10 +80,10 @@ layouts =
 tags = {
    names  = { 
       '1:IRC', 
-      '2:Vbox', 
+      '2:Luakit', 
       '3:Chrome', 
       '4:Vim',  
-      '5:SSH', 
+      '5:Vbox', 
       '6:Multimedia', 
       '7:Conky',
       '8:IDE',
@@ -91,10 +91,10 @@ tags = {
             },
    layout = {
       layouts[5],   -- 1:irc
-      layouts[10],  -- 2:vbox
+      layouts[10],  -- 2:luakit
       layouts[10],  -- 3:chrome
       layouts[10],  -- 4:vim
-      layouts[2],   -- 5:ssh
+      layouts[2],   -- 5:vbox
       layouts[10],  -- 6:multimedia
       layouts[10],  -- 7:conky
       layouts[2],   -- 8:ide
@@ -142,6 +142,43 @@ mymainmenu = awful.menu({ items = { { "Awesome", myawesomemenu, beautiful.awesom
 mylauncher = awful.widget.launcher({ image = image(beautiful.arch_icon),
                                      menu = mymainmenu })
 -- }}}
+
+-- Bash Script Test Widgets
+
+background_timers = {}                                                             
+                                                                                  
+function run_background(cmd,funtocall)                                             
+local r = io.popen("mktemp")                                                   
+local logfile = r:read("*line")                                                
+r:close()                                                                      
+                                                                                
+cmdstr = cmd .. " &> " .. logfile .. " & "                                     
+local cmdf = io.popen(cmdstr)                                                  
+cmdf:close()                                                                   
+background_timers[cmd] = {                                                     
+file  = logfile,                                                           
+timer = timer{timeout=1}                                                   
+}                                                                              
+background_timers[cmd].timer:add_signal("timeout",function()                   
+local cmdf = io.popen("pgrep -f '" .. cmd .. "'")                          
+local s = cmdf:read("*all")                                                
+cmdf:close()                                                               
+if (s=="") then                                                            
+background_timers[cmd].timer:stop()                                    
+local lf = io.open(background_timers[cmd].file)                        
+funtocall(lf:read("*all"))                                             
+lf:close()
+io.popen("rm " .. background_timers[cmd].file)                                                            
+end                                                                        
+end)                                                                           
+background_timers[cmd].timer:start()                                           
+end
+
+test = widget({ type = "textbox" })
+run_background("ls -a | wc -l | tail",function(txt)
+end)
+test.txt = ("text=txt")
+
 
 --Bashettes
 
@@ -212,7 +249,35 @@ vicious.register(cpu1widget, vicious.widgets.cpu, "CPU: A:$1% C1: $2% C2: $3%")
 -- Initialize Battery widget
 batwidget = widget({ type = "textbox" })
 -- Register widget
-vicious.register(batwidget, vicious.widgets.bat, "$1 Charge:$2% Rem:$3", 61, "BAT1")
+--vicious.register(batwidget, vicious.widgets.bat, "$1 Charge:$2% Rem:$3", 61, "BAT1",
+vicious.register(batwidget, vicious.widgets.bat, 
+--Bat % Warning
+function (widget, args)
+	if args[2] < 20 then 
+		naughty.notify({ title      = "<span color='red'>Battery Warning</span>"
+		, text       = "<span color='red'>Battery low! "..args[2].."% left!</span>"
+		, timeout    = 60
+		, position   = "top_right"
+		, fg         = beautiful.fg_focus
+		, bg         = beautiful.bg_focus
+	})
+end
+--return '<span color="red">$1$2%</span> <span color="cyan">$3</span>'
+return '<span color="white">(Bat: ' .. args[1] .. args[2] .. '% ' .. string.sub(args[3], 0, 5) .. ')</span>' end , 30, "BAT1")
+--return '<span color="' .. bottom_panel_text_color .. '">( args[1] .. 'Charge:' .. args[2] .. '% Rem:' .. string.sub(args[3], 0, 5) .. ')</span>' end , 30, "BAT1")
+
+-- Initialize Progressbar
+batprog = awful.widget.progressbar()
+-- Progressbar properties
+batprog:set_width(30):set_ticks_size(2)
+batprog:set_height(20)
+batprog:set_vertical(false):set_ticks(true)
+batprog:set_background_color("#494B4F")
+batprog:set_border_color(nil)
+batprog:set_color("#AECF96")
+batprog:set_gradient_colors({ "#FF5656", "#88A175", "#AECF96" })
+vicious.register(batprog, vicious.widgets.bat, "$2 ", 61, "BAT1")
+--batprog.addToWidget(batwidget, 5, 5, true)
 
 -- Initialize Wifi widget
 wifiwidget = widget({ type = "textbox" })
@@ -310,7 +375,7 @@ for s = 1, screen.count() do
             layout = awful.widget.layout.horizontal.leftright
         },
         mylayoutbox[s],
-        mytextclock,
+        mytextclock, spacer, uptimewidget, spacer, oswidget,
         s == 1 and mysystray or nil,
         mytasklist[s],
         layout = awful.widget.layout.horizontal.rightleft
@@ -321,8 +386,9 @@ for s = 1, screen.count() do
    myinfowibox[s] = awful.wibox({ position = "bottom", screen = s })
    -- Add widgets to the bottom wibox
      myinfowibox[s].widgets = { 
-	     oswidget,
-	     spacer,
+--	     oswidget,
+--	     spacer,
+	     batprog,
 	     batwidget, 
 	     spacer, 
 	     pacman, 
@@ -334,10 +400,12 @@ for s = 1, screen.count() do
 	     spacer, 
 	     cpuwidget, 
 	     cpu1widget,
+--	     spacer, 
+--	     uptimewidget, 
 	     spacer, 
-	     uptimewidget, 
-	     spacer, 
-	     wifiwidget,    
+	     wifiwidget,
+	     spacer,
+--	     test,
      layout = awful.widget.layout.horizontal.leftright}
 
 end
@@ -367,7 +435,6 @@ globalkeys = awful.util.table.join(
             awful.client.focus.byidx(-1)
             if client.focus then client.focus:raise() end
         end),
-    awful.key({ modkey,           }, "w", function () mymainmenu:show({keygrabber=true}) end),
     awful.key({ }, "Print", function () awful.util.spawn("upload_screens scr") end),
 
     -- Layout manipulation
@@ -397,6 +464,7 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey, "Control" }, "l",     function () awful.tag.incncol(-1)         end),
     awful.key({ modkey,           }, "space", function () awful.layout.inc(layouts,  1) end),
     awful.key({ modkey, "Shift"   }, "space", function () awful.layout.inc(layouts, -1) end),
+    awful.key({ modkey,           }, "w",     function () awful.util.spawn("luakit") end),
 
     awful.key({ modkey, "Control" }, "n", awful.client.restore),
 
@@ -506,6 +574,9 @@ awful.rules.rules = {
        properties = { tag = tags[1][2] } },
      { rule = { class = "Bitcoin-qt" },
        properties = { tag = tags[1][9] } },
+      { rule = { class = "luakit" },
+       properties = { tag = tags[1][2] } }, 
+
 }
 -- }}}
 
