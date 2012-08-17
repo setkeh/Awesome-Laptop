@@ -12,10 +12,12 @@ require("beautiful")
 -- Notification library
 require("naughty")
 -- Bash COnfiguration
-require("bashets")
+--require("bashets")
 -- Widget Library
 local vicious = require("vicious")
 require("vicious.helpers")
+--Keybinding Library
+local keydoc = require("keydoc")
 
 -- {{{ Error handling
 -- Check if awesome encountered an error during startup and fell back to
@@ -42,14 +44,16 @@ do
 end
 -- }}}
 
--- {{{ Variable definitions
--- Themes define colours, icons, and wallpapers
-beautiful.init("/home/setkeh/.config/awesome/themes/default/theme.lua")
-
 -- This is used later as the default terminal and editor to run.
 terminal = "urxvt -fg green -bg black"
 editor = os.getenv("EDITOR") or "nano"
 editor_cmd = terminal .. " -e " .. editor
+home_path  = os.getenv('HOME') .. '/'
+
+-- {{{ Variable definitions
+-- Themes define colours, icons, and wallpapers
+local theme_path = home_path  .. '.config/awesome/themes/default/theme.lua'
+beautiful.init(theme_path)
 
 -- Default modkey.
 -- Usually, Mod4 is the key with a logo between Control and Alt.
@@ -79,21 +83,21 @@ layouts =
 -- Define a tag table which hold all screen tags.
 tags = {
    names  = { 
-      '1:IRC', 
-      '2:Luakit', 
-      '3:Chrome', 
-      '4:Vim',  
-      '5:Vbox', 
-      '6:Multimedia', 
-      '7:Conky',
-      '8:IDE',
-      '9:Facepalm',
+      '☭:IRC',
+      '⚡:Luakit', 
+      '♨:Chrome', 
+      '☠:Vim',  
+      '☃:Vbox', 
+      '⌥:Multimedia', 
+      '⌘:Conky',
+      '✇:IDE',
+      '✣:Facepalm',
             },
    layout = {
       layouts[5],   -- 1:irc
       layouts[10],  -- 2:luakit
       layouts[10],  -- 3:chrome
-      layouts[10],  -- 4:vim
+      layouts[12],  -- 4:vim
       layouts[2],   -- 5:vbox
       layouts[10],  -- 6:multimedia
       layouts[10],  -- 7:conky
@@ -108,6 +112,23 @@ for s = 1, screen.count() do
 end
 -- }}}
 
+-- Wallpaper Changer Based On 
+-- menu icon menu pdq 07-02-2012
+local wallmenu = {}
+local function wall_load(wall)
+local f = io.popen('ln -sfn ' .. home_path .. '.config/awesome/wallpaper/' .. wall .. ' ' .. home_path .. '.config/awesome/themes/default/bg.png')
+awesome.restart()
+end
+local function wall_menu()
+local f = io.popen('ls -1 ' .. home_path .. '.config/awesome/wallpaper/')
+for l in f:lines() do
+local item = { l, function () wall_load(l) end }
+table.insert(wallmenu, item)
+end
+f:close()
+end
+wall_menu()
+
 -- {{{ Menu
 -- Create a laucher widget and a main menu
 myawesomemenu = {
@@ -119,6 +140,8 @@ myawesomemenu = {
 
 myinternetmenu = {
    { "Chromium", "chromium" },
+   { "Mumble", "mumble" },
+
 }
 
 mymediamenu = {
@@ -134,9 +157,10 @@ mytoolsmenu = {
 mymainmenu = awful.menu({ items = { { "Awesome", myawesomemenu, beautiful.awesome_icon },
 				    { "Internet", myinternetmenu, beautiful.awesome_icon },
 				    { "Multimedia", mymediamenu, beautiful.awesome_icon },
+				    { 'Wallpaper', wallmenu, beautiful.awesome_icon },
 				    { "Tools", mytoolsmenu, beautiful.awesome_icon },
-                                    { "open terminal", terminal, beautiful.awesome_icon }
-                                  }
+                                    { "open terminal", terminal, beautiful.awesome_icon }	  
+			    }
                         })
 
 mylauncher = awful.widget.launcher({ image = image(beautiful.arch_icon),
@@ -291,6 +315,40 @@ vicious.register(oswidget, vicious.widgets.os, "$3@$4")
 sys = require("sysinf")
 sys.addToWidget(oswidget, 240, 90, true)
 
+-- Initialize Net widget
+net = widget({ type = "textbox" })
+-- Register widget
+vicious.register(net, vicious.widgets.net, "DOWN: ${wlan0 down_kb}KB/s UP: ${wlan0 up_kb}KB/s")
+--vicious.register(net, vicious.widgets.net, 
+--function (widget, args)
+--end
+--return '<span color="white">(Bat: ' .. args[1] .. args[2] .. '% ' .. string.sub(args[3], 0, 5) .. ')</span>' end)
+
+-- Initialize Netup Progressbar
+netup = awful.widget.progressbar()
+-- Progressbar properties
+netup:set_width(15)
+netup:set_height(20)
+netup:set_vertical(true)
+netup:set_background_color("#494B4F")
+netup:set_border_color(nil)
+netup:set_color("#AECF96")
+netup:set_gradient_colors({ "#FF5656", "#88A175", "#AECF96" })
+vicious.register(netup, vicious.widgets.net, "${wlan0 up_kb}")
+
+-- Initialize NetDown Progress bar
+netdown = awful.widget.progressbar()
+-- Progressbar properties
+netdown:set_width(15)
+netdown:set_height(20)
+netdown:set_vertical(true)
+netdown:set_background_color("#494B4F")
+netdown:set_border_color(nil)
+netdown:set_color("#AECF96")
+netdown:set_gradient_colors({ "#FF5656", "#88A175", "#AECF96" })
+vicious.register(netdown, vicious.widgets.net, "${wlan0 down_kb")
+
+
 -- {{{ Wibox
 -- Create a textclock widget
 mytextclock = awful.widget.textclock({ align = "right" })
@@ -388,6 +446,10 @@ for s = 1, screen.count() do
      myinfowibox[s].widgets = { 
 --	     oswidget,
 --	     spacer,
+             netup,
+	     netdown,
+	     net,
+	     spacer,
 	     batprog,
 	     batwidget, 
 	     spacer, 
@@ -424,6 +486,7 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey,           }, "Left",   awful.tag.viewprev       ),
     awful.key({ modkey,           }, "Right",  awful.tag.viewnext       ),
     awful.key({ modkey,           }, "Escape", awful.tag.history.restore),
+    awful.key({ modkey,           }, "F1",     keydoc.display),
 
     awful.key({ modkey,           }, "j",
         function ()
@@ -438,8 +501,9 @@ globalkeys = awful.util.table.join(
     awful.key({ }, "Print", function () awful.util.spawn("upload_screens scr") end),
 
     -- Layout manipulation
-    awful.key({ modkey, "Shift"   }, "j", function () awful.client.swap.byidx(  1)    end),
-    awful.key({ modkey, "Shift"   }, "k", function () awful.client.swap.byidx( -1)    end),
+    keydoc.group("Layout manipulation"),
+    awful.key({ modkey, "Shift"   }, "j", function () awful.client.swap.byidx(  1)    end, "Swap With Next Window"),
+    awful.key({ modkey, "Shift"   }, "k", function () awful.client.swap.byidx( -1)    end, "Swap With Previous Window"),
     awful.key({ modkey, "Control" }, "j", function () awful.screen.focus_relative( 1) end),
     awful.key({ modkey, "Control" }, "k", function () awful.screen.focus_relative(-1) end),
     awful.key({ modkey,           }, "u", awful.client.urgent.jumpto),
@@ -449,22 +513,25 @@ globalkeys = awful.util.table.join(
             if client.focus then
                 client.focus:raise()
             end
-        end),
+        end, "Cycle Windows, Windows Style"),
 
     -- Standard program
-    awful.key({ modkey,           }, "Return", function () awful.util.spawn(terminal) end),
-    awful.key({ modkey, "Control" }, "r", awesome.restart),
-    awful.key({ modkey, "Shift"   }, "q", awesome.quit),
+    keydoc.group("Programs"),
+    awful.key({ modkey,           }, "Return", function () awful.util.spawn(terminal) end, "Start RXVT-Unicode"),
+    awful.key({ modkey, "Control" }, "r", awesome.restart, "Restart Awesome"),
+    awful.key({ modkey, "Shift"   }, "q", awesome.quit, "Quit Awesome"),
 
-    awful.key({ modkey,           }, "l",     function () awful.tag.incmwfact( 0.05)    end),
-    awful.key({ modkey,           }, "h",     function () awful.tag.incmwfact(-0.05)    end),
+    awful.key({ modkey,           }, "l",     function () awful.tag.incmwfact( 0.05)    end, "Increase Window Size"),
+    awful.key({ modkey,           }, "h",     function () awful.tag.incmwfact(-0.05)    end, "Decrese Window Size"),
     awful.key({ modkey, "Shift"   }, "h",     function () awful.tag.incnmaster( 1)      end),
     awful.key({ modkey, "Shift"   }, "l",     function () awful.tag.incnmaster(-1)      end),
     awful.key({ modkey, "Control" }, "h",     function () awful.tag.incncol( 1)         end),
     awful.key({ modkey, "Control" }, "l",     function () awful.tag.incncol(-1)         end),
-    awful.key({ modkey,           }, "space", function () awful.layout.inc(layouts,  1) end),
-    awful.key({ modkey, "Shift"   }, "space", function () awful.layout.inc(layouts, -1) end),
-    awful.key({ modkey,           }, "w",     function () awful.util.spawn("luakit") end),
+    awful.key({ modkey,           }, "space", function () awful.layout.inc(layouts,  1) end, "Cycle Layouts Forwards"),
+    awful.key({ modkey, "Shift"   }, "space", function () awful.layout.inc(layouts, -1) end, "Cycle Layouts Reverse"),
+    awful.key({ modkey,           }, "w",     function () awful.util.spawn("luakit")    end, "Start Luakit Web Browser"),
+    awful.key({ modkey,           }, "a", function () mymainmenu:show({keygrabber=true}) end, "Show Main Menu"),
+
 
     awful.key({ modkey, "Control" }, "n", awful.client.restore),
 
@@ -479,21 +546,21 @@ globalkeys = awful.util.table.join(
                   awful.util.getdir("cache") .. "/history_eval")
               end)
 )
-
+keydoc.group("Window Management")
 clientkeys = awful.util.table.join(
-    awful.key({ modkey,           }, "f",      function (c) c.fullscreen = not c.fullscreen  end),
-    awful.key({ modkey, "Shift"   }, "c",      function (c) c:kill()                         end),
+    awful.key({ modkey,           }, "f",      function (c) c.fullscreen = not c.fullscreen  end, "Toggle Fulscreen"),
+    awful.key({ modkey, "Shift"   }, "c",      function (c) c:kill()                         end, "Kill Window"),
     awful.key({ modkey, "Control" }, "space",  awful.client.floating.toggle                     ),
     awful.key({ modkey, "Control" }, "Return", function (c) c:swap(awful.client.getmaster()) end),
     awful.key({ modkey,           }, "o",      awful.client.movetoscreen                        ),
-    awful.key({ modkey, "Shift"   }, "r",      function (c) c:redraw()                       end),
+    awful.key({ modkey, "Shift"   }, "r",      function (c) c:redraw()                       end, "Redraw Window"),
     awful.key({ modkey,           }, "t",      function (c) c.ontop = not c.ontop            end),
     awful.key({ modkey,           }, "n",
         function (c)
             -- The client currently has the input focus, so it cannot be
             -- minimized, since minimized clients can't have the focus.
             c.minimized = true
-        end),
+        end, "Minimise Window"),
     awful.key({ modkey,           }, "m",
         function (c)
             c.maximized_horizontal = not c.maximized_horizontal
@@ -571,7 +638,7 @@ awful.rules.rules = {
      { rule = { class = "Vlc" },
        properties = { tag = tags[1][6] } },
      { rule = { class = "VirtualBox" },
-       properties = { tag = tags[1][2] } },
+       properties = { tag = tags[1][5] } },
      { rule = { class = "Bitcoin-qt" },
        properties = { tag = tags[1][9] } },
       { rule = { class = "luakit" },
