@@ -34,9 +34,15 @@ NOTES
 -----
 
 `Wallpapers:`
-    
+ 
     Due to not owning the licesnces for any of the wallpapers displayed in screenshots they will be 
-    removed from the File tree so you will be required to make some changes to the ./themes/default/theme.lua
+    removed from the File tree. To Combat the nessesity to Manually edit the lua theme i have created
+    a wallaper changer to the configs it will list your wallpapers and aplly the wallpaper and restart
+    awesome automaticly for you.
+    How to use this function:
+    mkdir ~/.config/awesome/wallpaper
+    Fill this directory with Wallpapers and select the wall paper you want from the Awesome Menu
+    (NOTE Awesome Soft restart maybe required if you cans see your images in the menu.)
 
 `Scripts:`
 
@@ -64,21 +70,6 @@ TODO
 1. Clean Up rc.conf
 2. Add More comments to rc.lua
 3. Open For Suggestions :)
-
-HISTORY
--------
-
-* 2012-07-09: Version 0.0.1
-      
-   - Initial commit
-   - Changed Launcher icon from Awesome to Custom ArchLinux icon
-   - Imported launchbar
-   - Imported diskusage
-   - Minor enhancement: default tags, tag names and layout
-   - Minor enhancement: bottom bar widgets (osWidget, Pacman Updates, AUR Updates,  uptime, cpu, cpu Graph, memory, Memory Graph, date)
-   - Version enhancement: new configuration variables
-   - Version enhancement: theme tweaks
-   - Version enhancement: configuration tweaks
 
 Contributing
 ------------

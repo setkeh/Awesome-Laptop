@@ -18,6 +18,12 @@ local vicious = require("vicious")
 require("vicious.helpers")
 --Keybinding Library
 local keydoc = require("keydoc")
+-- Awesome MPD Library
+require("awesompd/awesompd")
+--FreeDesktop
+require('freedesktop.utils')
+require('freedesktop.menu')
+freedesktop.utils.icon_theme = 'gnome'
 
 -- {{{ Error handling
 -- Check if awesome encountered an error during startup and fell back to
@@ -131,11 +137,12 @@ wall_menu()
 
 -- {{{ Menu
 -- Create a laucher widget and a main menu
+menu_items = freedesktop.menu.new()
 myawesomemenu = {
-   { "manual", terminal .. " -e man awesome" },
-   { "edit config", editor_cmd .. " " .. awesome.conffile },
-   { "restart", awesome.restart },
-   { "quit", awesome.quit }
+   { "manual", terminal .. " -e man awesome", freedesktop.utils.lookup_icon({ icon = 'help' }) },
+   { "edit config", editor_cmd .. " " .. awesome.conffile, freedesktop.utils.lookup_icon({ icon = 'package_settings' }) },
+   { "restart", awesome.restart, freedesktop.utils.lookup_icon({ icon = 'system-shutdown' }) },
+   { "quit", awesome.quit, freedesktop.utils.lookup_icon({ icon = 'system-shutdown' }) }
 }
 
 myinternetmenu = {
@@ -152,16 +159,15 @@ mymediamenu = {
 
 mytoolsmenu = {
    { "Virtualbox", "virtualbox" },
+   { "GNS3", "gns3" },
+   { "Eclipse", "eclipse" },
 }
 
-mymainmenu = awful.menu({ items = { { "Awesome", myawesomemenu, beautiful.awesome_icon },
-				    { "Internet", myinternetmenu, beautiful.awesome_icon },
-				    { "Multimedia", mymediamenu, beautiful.awesome_icon },
-				    { 'Wallpaper', wallmenu, beautiful.awesome_icon },
-				    { "Tools", mytoolsmenu, beautiful.awesome_icon },
-                                    { "open terminal", terminal, beautiful.awesome_icon }	  
-			    }
-                        })
+table.insert(menu_items, { "Awesome", myawesomemenu, beautiful.awesome_icon })
+
+table.insert(menu_items, { "Wallpaper", wallmenu, freedesktop.utils.lookup_icon({ icon = 'gnome-settings-background' })}) 
+
+mymainmenu = awful.menu({ items = menu_items, width = 150 })
 
 mylauncher = awful.widget.launcher({ image = image(beautiful.arch_icon),
                                      menu = mymainmenu })
@@ -236,6 +242,16 @@ aurup.addToWidget(aur, 240, 90, true)
 
 spacer       = widget({ type = "textbox"  })
 spacer.text  = ' | '
+
+bitcoin       = widget({ type = "textbox"  })
+bitcoin.text  = ' BTC '
+bitno = require("bitcoin")
+bitno.addToWidget(bitcoin, 240, 90, true)
+
+namecoin       = widget({ type = "textbox"  })
+namecoin.text  = ' NMC '
+nameno = require("namecoin")
+nameno.addToWidget(namecoin, 240, 90, true)
 
 --Vicious Widgets Derived from http://awesome.naquadah.org/wiki/Vicious
 
@@ -348,6 +364,58 @@ netdown:set_color("#AECF96")
 netdown:set_gradient_colors({ "#FF5656", "#88A175", "#AECF96" })
 vicious.register(netdown, vicious.widgets.net, "${wlan0 down_kb")
 
+-- MPD WIDGET
+-- Initialize widget MPD
+-- awesome.naquadah.org/wiki/Awesompd_widget
+musicwidget = awesompd:create() -- Create awesompd widget
+musicwidget.font = 'terminus' -- Set widget font 
+musicwidget.scrolling = true -- If true, the text in the widget will be scrolled
+musicwidget.output_size = 30 -- Set the size of widget in symbols
+musicwidget.update_interval = 10 -- Set the update interval in seconds
+-- Set the folder where icons are located (change username to your login name)
+musicwidget.path_to_icons = "/home/setkeh/.config/awesome/awesompd/icons" 
+-- Set the default music format for Jamendo streams. You can change
+-- this option on the fly in awesompd itself.
+-- possible formats: awesompd.FORMAT_MP3, awesompd.FORMAT_OGG
+musicwidget.jamendo_format = awesompd.FORMAT_MP3
+-- If true, song notifications for Jamendo tracks and local tracks will also contain
+-- album cover image.
+musicwidget.show_album_cover = true
+-- Specify how big in pixels should an album cover be. Maximum value
+-- is 100.
+musicwidget.album_cover_size = 50
+-- This option is necessary if you want the album covers to be shown
+-- for your local tracks.
+musicwidget.mpd_config = "/etc/mpd.conf"
+-- Specify the browser you use so awesompd can open links from
+-- Jamendo in it.
+musicwidget.browser = 'luakit'
+-- Specify decorators on the left and the right side of the
+-- widget. Or just leave empty strings if you decorate the widget
+-- from outside.
+ musicwidget.ldecorator = ' &#9835; '
+ musicwidget.rdecorator = ' &#9835; '
+-- Set all the servers to work with (here can be any servers you use)
+musicwidget.servers = {
+{ server = 'localhost',
+port = 6600 } }
+--  { server = '192.168.0.72',
+--       port = 6600 } }
+-- Set the buttons of the widget
+musicwidget:register_buttons({ { '', awesompd.MOUSE_LEFT, musicwidget:command_toggle() },
+                             { 'Control', awesompd.MOUSE_SCROLL_UP, musicwidget:command_prev_track() },
+                             { 'Control', awesompd.MOUSE_SCROLL_DOWN, musicwidget:command_next_track() },
+                             { '', 'XF86AudioPrev', musicwidget:command_prev_track() },
+			     { '', 'XF86AudioNext', musicwidget:command_next_track() },
+			     { '', awesompd.MOUSE_SCROLL_UP, musicwidget:command_volume_up() },
+			     { '', awesompd.MOUSE_SCROLL_DOWN, musicwidget:command_volume_down() },
+			     { '', awesompd.MOUSE_RIGHT, musicwidget:command_show_menu() },
+			     { modkey, 'XF86AudioLowerVolume', musicwidget:command_volume_down() },
+			     { modkey, 'XF86AudioRaiseVolume', musicwidget:command_volume_up() },
+			     { '', 'XF86AudioStop', musicwidget:command_stop() },
+			     { '', 'XF86AudioPlay', musicwidget:command_playpause() } })
+musicwidget:run() -- After all configuration is done, run the widget
+-- End mpd
 
 -- {{{ Wibox
 -- Create a textclock widget
@@ -433,7 +501,7 @@ for s = 1, screen.count() do
             layout = awful.widget.layout.horizontal.leftright
         },
         mylayoutbox[s],
-        mytextclock, spacer, uptimewidget, spacer, oswidget,
+        mytextclock, spacer, namecoin, spacer, bitcoin, spacer, uptimewidget, spacer, musicwidget.widget,
         s == 1 and mysystray or nil,
         mytasklist[s],
         layout = awful.widget.layout.horizontal.rightleft
@@ -444,8 +512,8 @@ for s = 1, screen.count() do
    myinfowibox[s] = awful.wibox({ position = "bottom", screen = s })
    -- Add widgets to the bottom wibox
      myinfowibox[s].widgets = { 
---	     oswidget,
---	     spacer,
+	     oswidget,
+	     spacer,
              netup,
 	     netdown,
 	     net,
@@ -467,7 +535,6 @@ for s = 1, screen.count() do
 	     spacer, 
 	     wifiwidget,
 	     spacer,
---	     test,
      layout = awful.widget.layout.horizontal.leftright}
 
 end
@@ -638,6 +705,8 @@ awful.rules.rules = {
      { rule = { class = "Vlc" },
        properties = { tag = tags[1][6] } },
      { rule = { class = "VirtualBox" },
+       properties = { tag = tags[1][5] } },
+     { rule = { class = "Gns3" },
        properties = { tag = tags[1][5] } },
      { rule = { class = "Bitcoin-qt" },
        properties = { tag = tags[1][9] } },
