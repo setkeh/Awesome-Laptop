@@ -70,7 +70,10 @@ What I Changed
 I may forget to update this bit :)
 
 Converted Widgets to BlingBling For sexy graphs :)
+
 Fixed some Small Issues in blingbling code
+
+Just remember if you use latest bling bling it may have errors if yu clone bling bling please do not post issues on my awesome configs 
 
 TODO
 ----
