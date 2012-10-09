@@ -24,6 +24,8 @@ require("awesompd/awesompd")
 require('freedesktop.utils')
 require('freedesktop.menu')
 freedesktop.utils.icon_theme = 'gnome'
+--BlingBling widgets
+require("blingbling")
 
 -- {{{ Error handling
 -- Check if awesome encountered an error during startup and fell back to
@@ -52,7 +54,7 @@ end
 
 -- This is used later as the default terminal and editor to run.
 terminal = "urxvt -fg green -bg black"
-editor = os.getenv("EDITOR") or "nano"
+editor = os.getenv("EDITOR") or "vim"
 editor_cmd = terminal .. " -e " .. editor
 home_path  = os.getenv('HOME') .. '/'
 
@@ -145,24 +147,6 @@ myawesomemenu = {
    { "quit", awesome.quit, freedesktop.utils.lookup_icon({ icon = 'system-shutdown' }) }
 }
 
-myinternetmenu = {
-   { "Chromium", "chromium" },
-   { "Mumble", "mumble" },
-
-}
-
-mymediamenu = {
-   { "Vlc", "vlc" },
-   { "KdenLive", "kdenlive" },
-   { "Pavucontrol", "pavucontrol" }
-}
-
-mytoolsmenu = {
-   { "Virtualbox", "virtualbox" },
-   { "GNS3", "gns3" },
-   { "Eclipse", "eclipse" },
-}
-
 table.insert(menu_items, { "Awesome", myawesomemenu, beautiful.awesome_icon })
 
 table.insert(menu_items, { "Wallpaper", wallmenu, freedesktop.utils.lookup_icon({ icon = 'gnome-settings-background' })}) 
@@ -172,43 +156,6 @@ mymainmenu = awful.menu({ items = menu_items, width = 150 })
 mylauncher = awful.widget.launcher({ image = image(beautiful.arch_icon),
                                      menu = mymainmenu })
 -- }}}
-
--- Bash Script Test Widgets
-
-background_timers = {}                                                             
-                                                                                  
-function run_background(cmd,funtocall)                                             
-local r = io.popen("mktemp")                                                   
-local logfile = r:read("*line")                                                
-r:close()                                                                      
-                                                                                
-cmdstr = cmd .. " &> " .. logfile .. " & "                                     
-local cmdf = io.popen(cmdstr)                                                  
-cmdf:close()                                                                   
-background_timers[cmd] = {                                                     
-file  = logfile,                                                           
-timer = timer{timeout=1}                                                   
-}                                                                              
-background_timers[cmd].timer:add_signal("timeout",function()                   
-local cmdf = io.popen("pgrep -f '" .. cmd .. "'")                          
-local s = cmdf:read("*all")                                                
-cmdf:close()                                                               
-if (s=="") then                                                            
-background_timers[cmd].timer:stop()                                    
-local lf = io.open(background_timers[cmd].file)                        
-funtocall(lf:read("*all"))                                             
-lf:close()
-io.popen("rm " .. background_timers[cmd].file)                                                            
-end                                                                        
-end)                                                                           
-background_timers[cmd].timer:start()                                           
-end
-
-test = widget({ type = "textbox" })
-run_background("ls -a | wc -l | tail",function(txt)
-end)
-test.txt = ("text=txt")
-
 
 --Bashettes
 
@@ -253,44 +200,102 @@ namecoin.text  = ' NMC '
 nameno = require("namecoin")
 nameno.addToWidget(namecoin, 240, 90, true)
 
---Vicious Widgets Derived from http://awesome.naquadah.org/wiki/Vicious
-
--- Initialize Memory TEXT widget
-mem1widget = widget({ type = "textbox" })
+--BlingBling Widgets
+--
+cpulabel= widget({ type = "textbox" })
+cpulabel.text='CPU: '
+--
+mycairograph=blingbling.classical_graph.new()
+mycairograph:set_height(18)
+mycairograph:set_width(200)
+mycairograph:set_tiles_color("#00000022")
+mycairograph:set_show_text(true)
+mycairograph:set_label("Load: $percent %")
+--
+--bind top popup on the graph
+blingbling.popups.htop(mycairograph.widget,
+       { title_color =beautiful.notify_font_color_1, 
+          user_color= beautiful.notify_font_color_2, 
+          root_color=beautiful.notify_font_color_3, 
+          terminal = "urxvt"})
+vicious.register(mycairograph, vicious.widgets.cpu,'$1',2)
+--
+memwidget=blingbling.classical_graph.new()
+memwidget:set_height(18)
+memwidget:set_width(200)
+memwidget:set_tiles_color("#00000022")
+memwidget:set_show_text(true)
+vicious.register(memwidget, vicious.widgets.mem, '$2', 1)
+--
+corelabel= widget({ type = "textbox" })
+corelabel.text='Cores: '
+--
+mycore1=blingbling.progress_graph.new()
+mycore1:set_height(18)
+mycore1:set_width(6)
+mycore1:set_filled(true)
+mycore1:set_h_margin(1)
+mycore1:set_filled_color("#00000033")
+vicious.register(mycore1, vicious.widgets.cpu, "$2")
+-- 
+mycore2=blingbling.progress_graph.new()
+mycore2:set_height(18)
+mycore2:set_width(6)
+mycore2:set_filled(true)
+mycore2:set_h_margin(1)
+mycore2:set_filled_color("#00000033")
+vicious.register(mycore2, vicious.widgets.cpu, "$3")
+--
+--
+mycore4=blingbling.progress_graph.new()
+--
+--
+memlabel= widget({ type = "textbox" })
+memlabel.text='MEM: '
+memwidget=blingbling.classical_graph.new()
+memwidget:set_height(18)
+memwidget:set_width(200)
+memwidget:set_tiles_color("#00000022")
+memwidget:set_show_text(true)
+vicious.register(memwidget, vicious.widgets.mem, '$1', 2)
+--
+netwidget = widget({ type = "textbox", name = "netwidget" })
+netwidget.text='NET:'
+-- Initialize Net widget
+net = widget({ type = "textbox" })
 -- Register widget
-vicious.register(mem1widget, vicious.widgets.mem, "RAM: $1% ($2MB/$3MB)", 13)
+vicious.register(net, vicious.widgets.net, "DOWN: ${wlan0 down_kb}KB/s UP: ${wlan0 up_kb}KB/s")
+--
+--activate popup with ip informations on the net widget
+--blingbling.popups.netpopup(net.widget)
+--
+netdown=blingbling.progress_graph.new()
+netdown:set_height(18)
+netdown:set_width(6)
+netdown:set_filled(true)
+netdown:set_h_margin(1)
+netdown:set_filled_color("#00000033")
+vicious.register(netdown, vicious.widgets.net, "${wlan0 down_kb")
 
---RAM GRAPH usage widget
-  memwidget = awful.widget.graph()
-  memwidget:set_width(50)
-  memwidget:set_background_color("#494B4F")
-  memwidget:set_color("#FF5656")
-  memwidget:set_gradient_colors({ "#FF5656", "#88A175", "#AECF96" })
-  vicious.register(memwidget, vicious.widgets.mem, "$1", 3)
-
--- Initialize Uptime widget
-uptimewidget = widget({ type = "textbox" })
--- Register widget
-vicious.register(uptimewidget, vicious.widgets.uptime, "Uptime: D:$1 H:$2 M:$3")
-
--- Initialize CPU TEXT widget
-cpu1widget = widget({ type = "textbox" })
--- Register widget
-vicious.register(cpu1widget, vicious.widgets.cpu, "CPU: A:$1% C1: $2% C2: $3%")
-
---CPU usage widget
-  cpuwidget = awful.widget.graph()
-  cpuwidget:set_width(50)
-  cpuwidget:set_background_color("#494B4F")
-  cpuwidget:set_color("#FF5656")
-  cpuwidget:set_gradient_colors({ "#FF5656", "#88A175", "#AECF96" })
-  vicious.register(cpuwidget, vicious.widgets.cpu, "$1", 3)
+netup=blingbling.progress_graph.new()
+netup:set_height(18)
+netup:set_width(6)
+netup:set_filled(true)
+netup:set_h_margin(1)
+netup:set_filled_color("#00000033")
+vicious.register(netup, vicious.widgets.net, "${wlan0 up_kb}")
 
 -- Initialize Battery widget
-batwidget = widget({ type = "textbox" })
--- Register widget
---vicious.register(batwidget, vicious.widgets.bat, "$1 Charge:$2% Rem:$3", 61, "BAT1",
-vicious.register(batwidget, vicious.widgets.bat, 
+batlabel= widget({ type = "textbox" })
+batlabel.text='BAT0: '
+--
+--batwidget = widget({ type = "textbox" })
+batwidget=blingbling.progress_bar.new()
+batwidget:set_height(18)
+batwidget:set_width(40)
+batwidget:set_show_text(true)
+batwidget:set_horizontal(true)
+vicious.register(batwidget, vicious.widgets.bat, "$2", 61, "BAT1",
 --Bat % Warning
 function (widget, args)
 	if args[2] < 20 then 
@@ -306,19 +311,6 @@ end
 return '<span color="white">(Bat: ' .. args[1] .. args[2] .. '% ' .. string.sub(args[3], 0, 5) .. ')</span>' end , 30, "BAT1")
 --return '<span color="' .. bottom_panel_text_color .. '">( args[1] .. 'Charge:' .. args[2] .. '% Rem:' .. string.sub(args[3], 0, 5) .. ')</span>' end , 30, "BAT1")
 
--- Initialize Progressbar
-batprog = awful.widget.progressbar()
--- Progressbar properties
-batprog:set_width(30):set_ticks_size(2)
-batprog:set_height(20)
-batprog:set_vertical(false):set_ticks(true)
-batprog:set_background_color("#494B4F")
-batprog:set_border_color(nil)
-batprog:set_color("#AECF96")
-batprog:set_gradient_colors({ "#FF5656", "#88A175", "#AECF96" })
-vicious.register(batprog, vicious.widgets.bat, "$2 ", 61, "BAT1")
---batprog.addToWidget(batwidget, 5, 5, true)
-
 -- Initialize Wifi widget
 wifiwidget = widget({ type = "textbox" })
 -- Register widget
@@ -331,38 +323,10 @@ vicious.register(oswidget, vicious.widgets.os, "$3@$4")
 sys = require("sysinf")
 sys.addToWidget(oswidget, 240, 90, true)
 
--- Initialize Net widget
-net = widget({ type = "textbox" })
+-- Initialize Uptime widget
+uptimewidget = widget({ type = "textbox" })
 -- Register widget
-vicious.register(net, vicious.widgets.net, "DOWN: ${wlan0 down_kb}KB/s UP: ${wlan0 up_kb}KB/s")
---vicious.register(net, vicious.widgets.net, 
---function (widget, args)
---end
---return '<span color="white">(Bat: ' .. args[1] .. args[2] .. '% ' .. string.sub(args[3], 0, 5) .. ')</span>' end)
-
--- Initialize Netup Progressbar
-netup = awful.widget.progressbar()
--- Progressbar properties
-netup:set_width(15)
-netup:set_height(20)
-netup:set_vertical(true)
-netup:set_background_color("#494B4F")
-netup:set_border_color(nil)
-netup:set_color("#AECF96")
-netup:set_gradient_colors({ "#FF5656", "#88A175", "#AECF96" })
-vicious.register(netup, vicious.widgets.net, "${wlan0 up_kb}")
-
--- Initialize NetDown Progress bar
-netdown = awful.widget.progressbar()
--- Progressbar properties
-netdown:set_width(15)
-netdown:set_height(20)
-netdown:set_vertical(true)
-netdown:set_background_color("#494B4F")
-netdown:set_border_color(nil)
-netdown:set_color("#AECF96")
-netdown:set_gradient_colors({ "#FF5656", "#88A175", "#AECF96" })
-vicious.register(netdown, vicious.widgets.net, "${wlan0 down_kb")
+vicious.register(uptimewidget, vicious.widgets.uptime, "Uptime: D:$1 H:$2 M:$3")
 
 -- MPD WIDGET
 -- Initialize widget MPD
@@ -512,27 +476,29 @@ for s = 1, screen.count() do
    myinfowibox[s] = awful.wibox({ position = "bottom", screen = s })
    -- Add widgets to the bottom wibox
      myinfowibox[s].widgets = { 
-	     oswidget,
+	     cpulabel,
+	     mycairograph,
 	     spacer,
-             netup,
-	     netdown,
-	     net,
+	     corelabel,
+	     mycore1,
+	     mycore2,
 	     spacer,
+	     memlabel,
+	     memwidget,
+	     spacer,
+	     batlabel,
+	     batwidget,
 	     batprog,
-	     batwidget, 
-	     spacer, 
+	     spacer,
 	     pacman, 
 	     spacer, 
-	     aur, 
-	     spacer, 
-	     memwidget,
-	     mem1widget, 
-	     spacer, 
-	     cpuwidget, 
-	     cpu1widget,
---	     spacer, 
---	     uptimewidget, 
-	     spacer, 
+	     aur,
+	     spacer,
+	     netwidget,
+	     netdown,
+	     netup,
+	     net,
+	     spacer,
 	     wifiwidget,
 	     spacer,
      layout = awful.widget.layout.horizontal.leftright}

@@ -6,7 +6,7 @@ Awesome Config's Redesigned for Laptop Usage
 http://awesome.naquadah.org/wiki/Main_Page
 https://github.com/setkeh/Awesome
 
-Depends on: git [luasocket][1] - [luainotify][2]
+Depends on: git [luasocket][1] - [luainotify][2] - [oocairo][7]
 
 Optional:  [Widget-Notify][4]
 
@@ -64,6 +64,14 @@ SUPPORT
 
 [setkeh][6]
 
+What I Changed
+--------------
+
+I may forget to update this bit :)
+
+Converted Widgets to BlingBling For sexy graphs :)
+Fixed some Small Issues in blingbling code
+
 TODO
 ----
 
@@ -90,3 +98,4 @@ SHARE AND ENJOY!
 [4]: https://github.com/setkeh/Awesome-Widget-Notify 
 [5]: http://www.linuxdistrocommunity.com
 [6]: https://github.com/setkeh/Awesome/issues
+[7]: http://oocairo.naquadah.org
