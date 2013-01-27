@@ -1,6 +1,9 @@
 Awesome-Laptop
 ==============
 
+PLEASE NOTE THESE CONFIGS DONOT WORK WITH 3.5 AND WILL NO LONGER BE UPDATED PLEASE SEE [Awesome-Laptop-3.5][8] FOR A WORKING 3.5 CONFIG
+--------------------------------------------------------------------------------------------------------------------------------------
+
 Awesome Config's Redesigned for Laptop Usage
 
 http://awesome.naquadah.org/wiki/Main_Page
@@ -102,3 +105,4 @@ SHARE AND ENJOY!
 [5]: http://www.linuxdistrocommunity.com
 [6]: https://github.com/setkeh/Awesome/issues
 [7]: http://oocairo.naquadah.org
+[8]: https://github.com/setkeh/Awesome-Laptop-3.5
